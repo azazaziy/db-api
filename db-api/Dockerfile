@@ -4,8 +4,7 @@ RUN pip install --upgrade pip && \
     poetry config virtualenvs.create false
 
 COPY pyproject.toml ./
-COPY requirements.txt ./
-
+RUN poetry install --no-dev
 WORKDIR /code
 COPY ./app /code/app
 CMD ["python","-m","uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
