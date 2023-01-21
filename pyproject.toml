@@ -1,24 +1,19 @@
 [tool.poetry]
-name = "web_itmo"
+name = "api"
 version = "0.1.0"
-description = ""
-authors = ["Zakhar Koryagin <koryagin.03@bk.ru>"]
+description = "Fast API service for PostgreSQL"
+authors = ["zvkoryagin <koryagin.03@bk.ru>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
+requests = "^2.28.1"
 fastapi = "^0.88.0"
 uvicorn = "^0.20.0"
-gunicorn = "^20.1.0"
-postgres-api = {git = "https://github.com/azazaziy/postgres-api.git", rev = "main"}
-json-helper = {git = "https://github.com/azazaziy/json-helper.git", rev = "main"}
-sqlalchemy = "^1.4.45"
-alembic = "^1.8.1"
-
-
-[tool.poetry.scripts]
-start = "app:main"
+postgres-api = {git = "https://github.com/azazaziy/postgres-api.git", branch="main"}
+json-helper = {git = "https://github.com/azazaziy/json-helper.git",branch="main"}
 
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -1,8 +1,10 @@
 from json_helper.serializer import MessageSerializer
 from postgres_api.postgres_helper import PostgresHelper
-# import uvicorn
-# import requests
+import uvicorn
+import requests
 from typing import Optional, List
+from json_helper.deserializer import UserMessage
+import json
 from datetime import datetime
 import json
 from fastapi import (
@@ -10,11 +12,10 @@ from fastapi import (
     Query,
     Request
 )
-
 app = FastAPI()
-db_api = PostgresHelper(
-    host='db',
-    port=5432,
+db = PostgresHelper(
+    host='localhost',
+    port='5432',
     password='postgres',
     user='postgres',
     database='postgres',
@@ -26,76 +27,27 @@ async def start(
 
 @app.get('/register')
 async def register(
-        login,
-        password
+        request: Request
 ):
-    response = {
-            'headers':
-                {
-                    'from_dict': True,
-                    'table': 'users',
-                    'action_type': 'insert',
-                },
-            'data':
-                {
-                    'login': f"'{login}'",
-                    'password': f"'{password}'",
-                }
-        }
-    s_one = {
-        'headers':
-            {
-                'action_type': 'select_one',
-                'table': 'users'
-            },
-        'data':
-            {
-                'values': 'login',
-                'conditions': {'login':f"'{login}'"}
-            }
-    }
-    article_id = db_api.execute(**s_one)
-    if article_id:
-        return {"error": 'existed_login'}
-    else:
-        resp = db_api.execute(**response)
-        return{'resp': resp}
+    request_body = await request.body()
+    user_data = UserMessage.parse_raw(request_body)
+
 
 @app.get('/login')
 async def login(
-        login,
-        password
+        request: Request
 ):
-    response = {
-            'headers':
-                {
-                    'from_dict': True,
-                    'table': 'users',
-                    'action_type': 'insert',
-                },
-            'data':
-                {
-                    'login': f"'{login}'",
-                    'password': f"'{password}'",
-                }
-        }
-    s_one = {
-        'headers':
-            {
-                'action_type': 'select_one',
-                'table': 'users'
-            },
-        'data':
-            {
-                'values': 'password',
-                'conditions': {'login':f"'{login}'"}
-            }
-    }
-    passw = db_api.execute(**s_one)
-    if password == passw:
+    request_body = await request.body()
+    user_data = UserMessage.parse_raw(request_body)
+    passw = db.execute(**user_data.dict()).get('password')
+    if user_data.data.password == str(passw):
         return {"done": 'ok'}
     else:
-        return{'failed': 'failed'}
+        return {'failed': 'failed'}
+    # return 'ok'
+
+
+
 
 @app.get('/set_data')
 async def set_data(
@@ -128,7 +80,7 @@ async def set_data(
         }
     )
     article = MessageSerializer(response)
-    db_api.execute(**article.as_dict())
+    db.execute(**article.as_dict())
     return {"status": 'added successfully'}
 
 @app.get('/get_one')
@@ -165,5 +117,10 @@ async def new_id(
             }
     }
     s_one['data']['values'] = s_one['data']['values'].format(field = field)
-    id = db_api.execute(**s_one) + 1
+    id = db.execute(**s_one) + 1
     return {'id': id}
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8080)
+
